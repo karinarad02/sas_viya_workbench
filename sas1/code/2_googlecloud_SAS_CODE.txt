@@ -1,0 +1,17 @@
+# Read Parquet data set from Google Cloud Storage
+libname gcs parquet "data"
+storage_platform="gcs"
+storage_bucket_name="sas1-learn"
+storage_gcs_key_file="/workspaces/myfolder/sas_viya_workbench/sas1/keys/gcl-sas1-reader.json"
+;
+proc datasets lib=gcs;
+quit;
+proc contents data=gcs.customer_churn_data varnum;
+run;
+proc contents data=gcs.customer_churn_data(obs=10);
+run;
+proc means data=gcs.customer_churn_data;
+run;
+proc freq data=gcs.customer_churn_data nlevels;
+    tables _all_ / noprint
+run;

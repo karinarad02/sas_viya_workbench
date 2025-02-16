@@ -1,0 +1,43 @@
+# Reading data from Snowflake
+## Initialize SAS macro variables with Snowflake user credentials
+%let my_account_url=saspartner.snowflake.com;
+%let my_schema=myschema;
+%let my_db=mydb;
+%let my_wh=mywh;
+%let my_user_name=myuser;
+%let my_password=mypw;
+## Connecting to Snowflake
+/* LIBNAME Statement to Snowflake database */
+/* libname cust snow server="%my_account_url"
+database=&my_db
+schema=&my_schema
+user=&my_user_name
+password=&my_password
+warehouse=&my_wh
+preserve_names= yes; */
+
+/* !!!Improv */
+libname cust "/workspaces/myfolder/sas_viya_workbench/sas1/data/input/snowflake";
+## List tables from Snowflake
+/* List tables from specified database and schema */
+proc datasets lib=cust nodetails;
+quit;
+## List column details of a Snowflake table
+/* List columns */
+proc contents data=cust.customers varnum;
+run;
+## Print a few rows from a Snowflake table
+/* Print few observations */
+proc contents data=cust.customers(obs=10);
+run;
+## Get a few metrics from a Snowflake table
+options sastrace="...d" sastraceloc=saslog nostsuffix;
+
+proc means data=cust.customers;
+    var EstimatedIncome;
+    class demHomeOwnerCode;
+run;
+## Get a frequency report from Snowflake table
+proc freq data=cust.customers;
+    tables customerSubscrCode;
+run;
