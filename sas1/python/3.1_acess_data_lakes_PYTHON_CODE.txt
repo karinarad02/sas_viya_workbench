@@ -1,0 +1,18 @@
+# Acessing and readin Data Lake files
+Begin by importing pandas. Ensure you have GCSFS and pyarrow installed on your workbench for this process to work!
+import pandas as pd
+Initialize the gcs key variable with the JSON file location.
+gcs_key = '../keys/gcl-sas1-reader.json'
+Define the path to the gcs
+bucket_name = 'sas1-learn'
+parquet_filename = 'customer_churn_data.parquet'
+
+file_path = 'gcs://' + bucket_name + '/data' + parquet_filename
+print(file_path)
+Read the Parquet file from the path to the gcs
+# cust_churn_df = pd.read_parquet(file_path, storage_options={"token":gcs_key})
+
+# Improv
+cust_churn_df = pd.read_parquet("/workspaces/myfolder/sas_viya_workbench/sas1/data/input/gcs")
+cust_churn_df.info()
+cust_churn_df.head()
