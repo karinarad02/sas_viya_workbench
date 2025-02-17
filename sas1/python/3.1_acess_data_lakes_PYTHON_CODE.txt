@@ -13,6 +13,6 @@ Read the Parquet file from the path to the gcs
 # cust_churn_df = pd.read_parquet(file_path, storage_options={"token":gcs_key})
 
 # Improv
-cust_churn_df = pd.read_parquet("/workspaces/myfolder/sas_viya_workbench/sas1/data/input/gcs")
+cust_churn_df = pd.read_parquet("../data/input/gcs/customer_churn_data.parquet")
 cust_churn_df.info()
 cust_churn_df.head()
