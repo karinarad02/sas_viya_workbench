@@ -1,0 +1,29 @@
+# Reading data from SnowFlake tables
+Ensure you have 'snowflake' and 'pyarrow' installed on your workbench for this process to work. Begin by importing the required packages.
+import pandas as pd
+
+import snowflake as sf
+import snowflake.connector
+import json
+## Initialize Database connection variables
+Credentials are stored in the snowflake_cred.json file and need to be accessed. Hard coding credentials should always be avoided.
+sf_credential = '../keys/snowflake_cred.json'
+
+# with open(sf_credential, "r") as f:
+#     sf_credential_dict = json_load(f)
+## Connection to Snowflake Database
+We open the connection by calling sf.connector.connect() with the parameters set to our credentials.
+conn = sf.connector.connect(**sf_credential_dict)
+Create a cursor object from the connection to execute queries
+cursor = conn.cursor()
+## Read data from Snowflake database table.
+Execute Snowflake queries with execute() method. NB: The table name will always be capitalized in a Snowflake query unless you encapsulate it in quotes!
+cursor.execute('select * from "customers"').fetch_pandas_all()
+
+customers_df
+Always close the connection when finished!
+conn.close()
+# Data improv
+
+customers_df = pd.read_sas('../data/input/snowflake/customers.sas7bdat')
+customers_df.info()

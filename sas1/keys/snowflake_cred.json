@@ -1,0 +1,11 @@
+
+{
+ "this should contain the key to snowflake":"",
+ "account_url":"one.two.com",
+ "account":"myaccount",
+ "user":"myusername",
+ "password":"mypassword",
+ "database":"mydsatabase",
+ "warehouse":"mywarehouse",
+ "schema":"myschema"
+}
