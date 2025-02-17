@@ -1,0 +1,187 @@
+# Data Exploration with SAS WorkBench
+In this notebook we will explore our customer churn dataset to try to identify whether there are any meaningful relationships between our variables. We will also attept to identify any data quality issues that will need to be addressed prior to developing machine learning models.
+## Imports
+In the next section we will import necessary packages and modules that will be used throughout this project.
+# Imports necessary packages and modules
+import matplotlib.pyplot as plt
+from math import ceil
+import numpy as np
+import pandas as pd
+from scipy.stats import skew, kurtosis
+import seaborn as sns
+# Import the dataset
+churn_df = pd.read_csv('../data/output/customer_churn_abt.csv',header='infer')
+## Basic Exploration
+Explores some of the basic information pertaining the data.
+# Display some information pertaining to the churn dataset
+churn_df.info()
+
+# Display the column variable types
+dftypes = churn_df.dtypes.value_counts()
+dftypes
+## Duplicate Rows
+Checks and removes duplicate rows if they exist
+churn_df = churn_df.drop_duplicates(keep='first')
+churn_df.shape
+## Exploring Distributions
+# Display summary statistics for the numeric and categorical columns
+
+for type in dftypes.index:
+    print(f"---------------Variable Summary Statistics for {type} variables ----------------",end="\n\n")
+    # display(churn_df.describe(include=_type).T)
+    display(churn_df.describe().T)
+    print("",end="\n\n")
+# Display a histogram of all of the float and int columns
+churn_df.hist(figsize=(15,15))
+# Explore the distribution of the categorical columns
+
+cat_columns = [col for col in churn_df.select_dtypes("object").columns if col not in ["birthDate","Review_Text","Title"]]
+
+for col in cat_columns:
+    print(churn_df[col].value_counts(),end="\n\n")
+# Display target variable distribution
+churn_df["LostCustomer"].value_counts(normalize=True)
+# Display the target variable distribution
+sns.countplot(churn_df, x='LostCustomer')
+def count_plots(data:pd.DataFrame,columns: list, figsize: tuple=(15,5),fig_per_row:int=5)->plt:
+   
+    # Generates a grid displaying barplots for all specified columns.append
+    
+    # Parameters
+    # ----------------
+    # data: pd.DataFrame
+    #     Pandas datafrme containing data visualized
+    # columns: list
+    #     List contining the name of the column to be visualized
+    # figsize: tuple
+    #     Dimensions of the plot grid that will be generated
+    # fig_per_row: int
+    #     How many figures a user wants per row. Default = 5
+
+# Determine plot dimensions
+    if len(columns) < fig_per_row:
+        nrows,ncols=1, fig_per_row
+    else:
+        nrows,ncols = ceil(len(columns) / fig_per_row), fig_per_row
+
+    # Create subplots based on specified dimensions
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
+    axs = axs.flatten()
+
+    # Iterate through the columns and the created axes
+
+    for col, ax in zip(columns,axs):
+        sns.countplot(data=data, x=col, ax=ax)
+        ax.set_title(f"{col} Count Plot")
+
+    # Ensure there is no overlap between plots
+    plt.tight_layout()
+
+    # Delete any unused axes
+    for ax in axs[len(columns):]:
+        fig.delaxes(ax)
+
+    return fig
+
+# Apply the count_plot function on the categorical columns
+cat_count_plots = count_plots(churn_df,columns=["LostCustomer"]+cat_columns)
+## Extreme Observations
+# Compute skeweness and kurtosis for all numeric variables
+skeweness=churn_df.select_dtypes(['int','float']).skew()[2:]
+kurtosis=churn_df.select_dtypes(['int','float']).kurtosis()[2:]
+
+# Display skeweness
+print('-------------------SKEWENESS-------------------')
+print(skeweness, end='\n\n')
+
+# Display kurtosis
+print('-------------------KURTOSIS-------------------')
+print(kurtosis, end='\n\n')
+# Selecting highly non-normal columns based on Fisher's definition of kurtosis
+high_skeweness=skeweness[(skeweness>3)|(skeweness< -3)]
+high_kurtosis=kurtosis[(kurtosis>3)|(kurtosis< -3)]
+
+# Display results
+print('-------------------SKEWENESS-------------------',end='\n\n')
+print(high_skeweness, end='\n\n')
+
+print('-------------------KURTOSIS-------------------',end='\n\n')
+print(high_kurtosis, end='\n\n')
+
+print('-------------------HIGH BOTH-------------------',end='\n\n')
+skewed_cols = [col for col in high_skeweness.index if col in high_kurtosis]
+print(skewed_cols)
+# Exploring Distribution of skewed columns
+churn_df[skewed_cols].hist(figsize=(15,8),layout=(2,3))
+# Define function to generate outlier plots
+def box_plots(data:pd.DataFrame,columns: list, figsize: tuple=(15,5),fig_per_row:int=5)->plt:
+   
+    # Generates a grid displaying barplots for all specified columns.append
+    
+    # Parameters
+    # ----------------
+    # data: pd.DataFrame
+    #     Pandas datafrme containing data visualized
+    # columns: list
+    #     List contining the name of the column to be visualized
+    # figsize: tuple
+    #     Dimensions of the plot grid that will be generated
+    # fig_per_row: int
+    #     How many figures a user wants per row. Default = 5
+
+    # Determine plot dimensions
+    if len(columns) < fig_per_row:
+        nrows,ncols=1, fig_per_row
+    else:
+        nrows,ncols = ceil(len(columns) / fig_per_row), fig_per_row
+    # Create subplots based on specified dimensions
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
+    axs = axs.flatten()
+
+    # Iterate through the columns and the created axes
+
+    for col, ax in zip(columns,axs):
+        sns.boxplot(data=data, y=col, ax=ax)
+        ax.set_title(f"{col} Count Plot")
+
+    # Ensure there is no overlap between plots
+    plt.tight_layout()
+
+    # Delete any unused axes
+    for ax in axs[len(columns):]:
+        fig.delaxes(ax)
+
+    return fig
+
+# Generate box and whisker plots
+skewed_box_plots= box_plots(churn_df,skewed_cols, fig_per_row=3)
+## Exploring Missingness
+# Display the proportion of missing values
+missing=churn_df.isna().sum()
+missing=missing[missing>0]/churn_df.shape[0]
+missing
+# Display a sample of some of the missing columns
+print(churn_df[missing.index].dtypes,end="\n\n")
+churn_df[missing.index].head()
+# Display the distribution of the missing values
+missing_list=missing.index.to_list()
+churn_df[missing_list].hist()
+# Computes the correlation between all variables
+corr_df = churn_df.corr(numeric_only=True)
+
+# Fills the diagonals to exclude them from the computation
+np.fill_diagonal(corr_df.values, val= np.nan)
+
+# Selects rows with high correlations
+high_corr=corr_df[(corr_df>0.9)|(corr_df< -0.9)]
+
+# Drops rows, then columns, where the above thereshold is not met
+high_corr=high_corr.dropna(how='all')
+high_corr=high_corr.dropna(how='all', axis=1)
+
+# Display columns with high correlation
+high_corr.head()
+# Generate a heatmap using the correlation values
+cmap=plt.get_cmap('coolwarm').reversed()
+corr_plot=sns.heatmap(high_corr, vmin=-1,vmax=1,annot=True,cmap=cmap)
+corr_plot.set_title("Correlation HeatMap")
