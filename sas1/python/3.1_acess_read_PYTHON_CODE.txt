@@ -1,0 +1,17 @@
+# Accessing and reading local files
+Upload the files from the laptop to VS Code in the /workspace/myfolder/sas1/data/directory
+import pandas as pd
+## Acess the csv file
+subscriptions_df = pd.read_csv('../data/input/subscriptions.csv')
+
+subscriptions_df.info()
+subscriptions_df
+## Acess the Json file
+json_df = pd.read_json('../data/input/reviews.json')
+json_df.head()
+The data is read in with a bad format, we need to tell pandas to read each row as data since each row is a dictionary.
+reviews_df = pd.DataFrame.from_records(json_df['reviews'])
+reviews_df.head()
+## Acess the SAS data set
+techsupportevals_df = pd.read_sas('../data/input/techsupportevals.sas7bdat')
+techsupportevals_df.head()
