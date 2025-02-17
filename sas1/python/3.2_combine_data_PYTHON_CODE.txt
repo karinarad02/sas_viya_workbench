@@ -1,0 +1,41 @@
+# Reading in Data
+import pandas as pd
+# Reading our local files
+
+subscriptions_df = pd.read_csv('../data/input/subscriptions.csv')
+techsupportevals_df = pd.read_sas('../data/input/techsupportevals.sas7bdat')
+raw_json = pd.read_json('../data/input/reviews.json')
+reviews_df = pd.DataFrame.from_records(raw_json['reviews'])
+
+# Connecting to GCS & Snowflake => see the other files
+
+# Getting the data
+cust_churn_df = pd.read_parquet("../data/input/gcs/customer_churn_data.parquet")
+customers_df = pd.read_sas('../data/input/snowflake/customers.sas7bdat')
+## Joining the Data
+df = pd.merge(cust_churn_df,customers_df, on='custId',how='inner').drop(columns='custId')
+df.columns
+df = df.merge(subscriptions_df, on='customerSubscrCode',how='inner').drop(columns='customerSubscrCode')
+df = df.merge(techsupportevals_df, on='ID',how='inner')
+len(reviews_df)
+df['reviewId'].isna().sum()
+df = df.merge(reviews_df, on='reviewId',how='left').drop(columns='reviewId')
+df.head()
+df.info()
+## Feature Engeneering
+df['DemHomeOwnerCode'].value_counts()
+df['demHomeowner'] = df["DemHomeOwnerCode"].map({'U':'Unknown','H':'Homeowner'})
+df.drop(columns='DemHomeOwnerCode', inplace=True)
+df['demHomeowner'].value_counts()
+df['birthDate'].head()
+import numpy as np
+
+df['customerAge'] = ((pd.Timestamp.now()-pd.to_datetime(df['birthDate'])).dt.days / 365.25)
+df['customerAge'].head()
+df['customerAge'] = df['customerAge'].apply(lambda x: int(x) if pd.notnull(x) else np.nan)
+df.drop(columns='birthDate', inplace=True)
+df['customerAge'].head()
+df['AvgPurchasePerAd'] = df['AvgPurchaseAmount12'] / df['intAdExposureCount12']
+df.head()
+## Saving Our Work
+df.to_csv('../data/output/customer_churn_abt_python.csv')
