@@ -39,3 +39,28 @@ df['AvgPurchasePerAd'] = df['AvgPurchaseAmount12'] / df['intAdExposureCount12']
 df.head()
 ## Saving Our Work
 df.to_csv('../data/output/customer_churn_abt_python.csv')
+gcs_key = ('../key/gel-sas-reader.json')
+
+bucket_name = 'sas1-learn'
+
+output_filename = 'customer_churn_abt.parquet'
+output_path = f'gcs://{bucket_name}/data/{output_filename}'
+
+df.to_parquet(
+    output_path,
+    engine='pyarrow',
+    storage_options={'token':gcs_key}
+)
+
+print(f"DataFrame written to {output_path}")
+from snowflake.connector.pandas_tools import write_pandas
+
+conn = sf.connector.connect(**sf_credential_dict)
+
+success,nchuncks,nrows,output = write_pandas(
+    conn=conn,
+    df=df,
+    table_name='CUSTOMER_CHURN_AB1'
+)
+
+conn.close()
